@@ -1,4 +1,4 @@
-name: Config-Service-CI
+name: Payment Service CI
 
 on:
   push:
@@ -10,77 +10,29 @@ on:
       - 'services/config-service/**'
       - 'services/shared/**'
   workflow_dispatch:
-    
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: services/config-service
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: services/config-service/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('services/config-service/package-lock.json') }}
-
-
-      - name: Install dependencies
-        run: npm install
-
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
-        with:
-          projectBaseDir: .
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-      - name: SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-        with:
-          scanMetadataReportFile: ./.scannerwork/report-task.txt
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Snyk Scan
-        uses: snyk/actions/node@master
-        with:
-          command: test
-          # uses: actions run at workspace root, NOT in defaults.run.working-directory
-          args: --file=services/config-service/package.json --severity-threshold=high
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-      - name: Build (optional)
-        run: npm run build || echo "No build step"
-
-      - name: Docker Login
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Build Docker Image
-        working-directory: services
-        run: docker build -f fraud-detection-service/Dockerfile -t ${{ secrets.DOCKER_USERNAME }}/fraud-detection-service:latest .
-
-      - name: Trivy Scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ secrets.DOCKER_USERNAME }}/fraud-detection-service:latest
-          format: table
-          exit-code: 1
-          severity: CRITICAL
-
-      - name: Push Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/fraud-detection-service:latest
+  ci:
+    uses: Area-51-Devops/ci-templates/.github/workflows/common-ci.yml@main
+    permissions:
+      contents: write      
+      packages: read
+    with:
+      working_directory: "services/config-service"
+      image_name: "sservices/config-service"
+      service-name: "config-service"
+      docker_context: "services"
+      dockerfile_path: "config-service/Dockerfile"
+      run_build: false
+      sonar_project_key: "config-service"
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
