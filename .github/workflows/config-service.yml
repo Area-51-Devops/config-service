@@ -19,7 +19,7 @@ jobs:
       packages: read
     with:
       working_directory: "services/config-service"
-      image_name: "sservices/config-service"
+      image_name: "services/config-service"
       service-name: "config-service"
       docker_context: "services"
       dockerfile_path: "config-service/Dockerfile"
