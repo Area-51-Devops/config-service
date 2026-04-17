@@ -1,0 +1,22 @@
+{
+  "name": "config-service",
+  "version": "2.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"No tests configured yet\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cross-spawn": "7.0.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "glob": "11.1.0",
+    "ioredis": "^5.3.2",
+    "minimatch": "10.2.3",
+    "pino": "^8.15.0",
+    "tar": "7.5.11",
+    "uuid": "^9.0.1"
+  }
+}
