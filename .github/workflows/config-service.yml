@@ -57,7 +57,7 @@ jobs:
         with:
           command: test
           # uses: actions run at workspace root, NOT in defaults.run.working-directory
-          args: --file=services/fraud-detection-service/package.json --severity-threshold=high
+          args: --file=services/config-service/package.json --severity-threshold=high
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
