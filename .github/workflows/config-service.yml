@@ -1,4 +1,4 @@
-name: Payment Service CI
+name: Config Service CI
 
 on:
   push:
