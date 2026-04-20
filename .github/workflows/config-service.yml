@@ -1,5 +1,15 @@
 name: Config Service CI
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Config Service CI — calls each reusable workflow directly (no common-ci.yml).
+#
+# Execution order:
+#   ci-sonar ──┐
+#              ├──► ci-image  (only starts when BOTH quality gates pass)
+#   ci-snyk  ──┘
+#
+# ──────────────────────────────────────────────────────────────────────────────
+
 on:
   push:
     paths:
@@ -12,23 +22,41 @@ on:
   workflow_dispatch:
 
 jobs:
-  ci:
-    uses: Area-51-Devops/ci-templates/.github/workflows/common-ci.yml@main
+  ci-sonar:
+    uses: Area-51-Devops/ci-templates/.github/workflows/ci-sonar.yml@main
     permissions:
-      contents: write      
-      packages: read
+      contents: write
     with:
       working_directory: "services/config-service"
-      image_name: "services/config-service"
-      service-name: "config-service"
-      docker_context: "services"
-      dockerfile_path: "config-service/Dockerfile"
-      run_build: false
       sonar_project_key: "config-service"
+      service-name: "config-service"
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  ci-snyk:
+    uses: Area-51-Devops/ci-templates/.github/workflows/ci-snyk.yml@main
+    permissions:
+      contents: write
+    with:
+      working_directory: "services/config-service"
+      service-name: "config-service"
+    secrets:
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  ci-image:
+    needs: [ci-sonar, ci-snyk]
+    uses: Area-51-Devops/ci-templates/.github/workflows/ci-image.yml@main
+    permissions:
+      contents: write
+    with:
+      working_directory: "services/config-service"
+      image_name: "services/config-service"
+      run_build: false
+      docker_context: "services"
+      dockerfile_path: "config-service/Dockerfile"
+      service-name: "config-service"
+    secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       SMTP_HOST: ${{ secrets.SMTP_HOST }}
